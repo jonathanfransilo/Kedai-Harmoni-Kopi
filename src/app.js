@@ -50,6 +50,54 @@ document.addEventListener('alpine:init', () => {
   });
 });
 
+//Form Validation
+const checkoutButton = document.querySelector('.checkout-button');
+checkoutButton.disabled = true;
+
+
+const form =document.querySelector('#checkoutForm');
+
+form.addEventListener('keyup', function() {
+  for( let i = 0; i < form.elements.length; i++) {
+    if(form.elements[i].value.length !== 0) {
+      checkoutButton.classList.remove('disabled');
+      checkoutButton.classList.add('disabled');
+    } else {
+      return false;
+    }
+  }
+  checkoutButton.disabled = false;
+  checkoutButton.classList.remove('disabled');
+});
+
+// kirim data ketika tombol checkout di klik
+checkoutButton.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const formData = new FormData(form);
+  const customerData = Object.fromEntries(formData);
+  const cartData = Alpine.store('cart').items;
+  const totalPrice = Alpine.store('cart').total;
+
+  if (cartData.length === 0) {
+    alert('Your cart is empty. Please add some products before checking out.');
+    return;
+  }
+
+  const message = formatMessage(customerData, cartData, totalPrice);
+  const whatsappURL = `https://wa.me/6282166416781?text=${encodeURIComponent(message)}`;
+  window.open(whatsappURL, '_blank');
+});
+
+// format pesan whatsapp
+const formatMessage = (customerData, cartData, totalPrice) => {
+  let cartItems = cartData
+    .map((item) => `${item.name} (${item.quantity} x ${rupiah(item.price)})`)
+    .join('\n');
+  return `Data Customer\nNama: ${customerData.name}\nEmail: ${customerData.email}\nNo HP: ${customerData.phone}\n\nData Pesanan:\n${cartItems}\n\nTotal: ${rupiah(totalPrice)}\nTerima kasih.`;
+};
+
+
 // Fungsi format Rupiah
 const rupiah = (number) => {
   return new Intl.NumberFormat('id-ID', { 
